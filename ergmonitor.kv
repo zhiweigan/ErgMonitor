@@ -1,0 +1,144 @@
+#:kivy 1.0.9
+#:import label kivy.uix.label
+#:import ListAdapter kivy.adapters.listadapter.ListAdapter
+
+<Row@BoxLayout>:
+    canvas.before:
+        Color:
+            rgba: 0.9098, 0.8314, 0.8196, 1
+        Rectangle:
+            size: self.size
+            pos: self.pos
+    time: ''
+    dist: ''
+    avg_split: ''
+    erg: ''
+    Label:
+        font_name: 'OpenSans-Light'
+        size_hint_x: 0.15
+        color: 0,0,0,1
+        text: root.erg
+    Label:
+        font_name: 'OpenSans-Light'
+        size_hint_x: 0.3
+        color: 0,0,0,1
+        text: root.time
+    Label:
+        font_name: 'OpenSans-Light'
+        size_hint_x: 0.25
+        color: 0,0,0,1
+        text: root.dist
+    Label:
+        font_name: 'OpenSans-Light'
+        size_hint_x: 0.3
+        color: 0,0,0,1
+        text: root.avg_split
+
+<Erg>:
+    size: 200, 100
+    ltext: ltext
+    limg: limg
+    AsyncImage:
+        id: limg
+        top: self.parent.top
+        x: 70
+        source: 'erg_offline.png'
+    Label:
+        color: 0,0,0,1
+        id: ltext
+        font_size: 30
+        top: self.parent.top
+        x: 520
+        font_name: 'OpenSans-Light'
+        text: ''
+
+
+
+<ErgMonitorBase>:
+
+
+    erg1: erg_1
+    erg2: erg_2
+    erg3: erg_3
+    erg4: erg_4
+    erg5: erg_5
+    erg6: erg_6
+    erg7: erg_7
+    erg8: erg_8
+    tableList: tableList
+
+    Label:
+        color: 0,0,0,1
+        font_size: 30
+        top: root.top-10
+        font_name: 'OpenSans-Light'
+        x: 200
+        text: 'Erg Status'
+
+    Label:
+        color: 0,0,0,1
+        font_size: 30
+        top: root.top-20
+        font_name: 'OpenSans-Light'
+        x: root.width - 500
+        text: 'Completed\n Workouts'
+
+    Button:
+        top: root.top-20
+        x: root.width-350
+        size: 300,100
+        font_name: 'OpenSans-Light'
+        text: 'Upload to sheets'
+        on_release: app.upload()
+
+    RecycleView:
+        top: root.top-150
+        x: root.width-550
+        id: tableList
+        scroll_type: ['bars', 'content']
+        scroll_wheel_distance: dp(114)
+        bar_width: dp(10)
+        viewclass: 'Row'
+        #size_hint_x: .2
+        size: 500, 1000
+        RecycleBoxLayout:
+            cols:3
+            default_size: None, dp(30)
+            default_size_hint: 1, None
+            size_hint_y: None
+            height: self.minimum_height
+            orientation: 'vertical'
+            spacing: 1
+
+    Erg:
+        id: erg_1
+        top: root.top-70
+        x: 50
+    Erg:
+        id: erg_2
+        top: root.top-180
+        x: 50
+    Erg:
+        id: erg_3
+        top: root.top-290
+        x: 50
+    Erg:
+        id: erg_4
+        top: root.top-400
+        x: 50
+    Erg:
+        id: erg_5
+        top: root.top-510
+        x: 50
+    Erg:
+        id: erg_6
+        top: root.top-620
+        x: 50
+    Erg:
+        id: erg_7
+        top: root.top-730
+        x: 50
+    Erg:
+        id: erg_8
+        top: root.top-840
+        x: 50
