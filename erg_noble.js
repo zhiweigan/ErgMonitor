@@ -36,18 +36,34 @@ noble.on('stateChange', function(state) {
   }
 });
 
-// console.log('Searching for Ergs')
-// console.log('PM5 430500339 CON')
-// console.log('PM5 430500339 MON Speed: 20 Split: 2:12 Stroke Rate: 32')
-// console.log('PM5 430504875 CON')
-// console.log('PM5 430504875 MON Speed: 21 Split: 1:59 Stroke Rate: 35')
-// console.log('PM5 430503944 CON')
-// console.log('PM5 430503944 MON Speed: 22 Split: 1:58 Stroke Rate: 26')
-// console.log('PM5 430500339 FIN Time: 6:15 Distance: 2000 Avg Split: 1:30.9')
-// console.log('PM5 430504875 FIN Time: 6:45 Distance: 2000 Avg Split: 1:35.7')
-// console.log('PM5 430500339 FIN Time: 15:0 Distance: 4342 Avg Split: 2:10.2')
-// console.log('PM5 430503944 FIN Time: 15:0 Distance: 5345 Avg Split: 2:15.4')
-// console.log('PM5 430503944 FIN Time: 6:50 Distance: 2000 Avg Split: 1:36.3')
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function demo() {
+  console.log('Taking a break...');
+  await sleep(2000);
+  console.log('Two seconds later');
+  console.log('PM5 430500339 CON')
+  console.log('PM5 430500339 MON Speed: 20 Split: 2:12 Stroke Rate: 32')
+  console.log('PM5 430500339 MON Distance: 100')
+  console.log('PM5 430504875 CON')
+  console.log('PM5 430504875 MON Speed: 21 Split: 1:59 Stroke Rate: 35')
+  console.log('PM5 430504875 MON Distance: 200')
+  console.log('PM5 430503944 CON')
+  console.log('PM5 430503944 MON Speed: 22 Split: 1:58 Stroke Rate: 26')
+  console.log('PM5 430503944 MON Distance: 400')
+  console.log('PM5 430500339 FIN Time: 6:15 Distance: 2000 Avg Split: 1:30.9')
+  console.log('PM5 430504875 FIN Time: 6:45 Distance: 2000 Avg Split: 1:35.7')
+  console.log('PM5 430500339 FIN Time: 15:0 Distance: 4342 Avg Split: 2:10.2')
+  console.log('PM5 430503944 FIN Time: 15:0 Distance: 5345 Avg Split: 2:15.4')
+  console.log('PM5 430503944 FIN Time: 6:50 Distance: 2000 Avg Split: 1:36.3')
+}
+
+demo();
+
+
 
 noble.on('disconnect', function(data) {
       console.log("disconnected")
@@ -75,17 +91,14 @@ noble.on('discover', function(peripheral) {
         peripheral.discoverServices(['ce06003043e511e4916c0800200c9a66'], function(error, services) {
           //console.log('discovered the following services:');
           //console.log('  ' + i + ' uuid: ' + services[0].uuid);
-          services[0].discoverCharacteristics(['ce06003943e511e4916c0800200c9a66', 'ce06003243e511e4916c0800200c9a66'], function(error, characteristics) {
-            var endworkout = characteristics[1];
-            var currstroke = characteristics[0];
+          services[0].discoverCharacteristics(['ce06003943e511e4916c0800200c9a66', 'ce06003243e511e4916c0800200c9a66', 'ce06003143e511e4916c0800200c9a66'], function(error, characteristics) {
+            var endworkout = characteristics[2];
+            var currstroke2 = characteristics[1];
+            var currstroke1 = characteristics[0];
 
             if(endworkout != undefined){
                 endworkout.on('data', function(data, isNotification) {
                   var byteArray = new Uint8Array(data);
-                  // console.log('Erg Workout Finished!');
-                  // for (var i = 0; i < byteArray.byteLength; i++) {
-                  //   console.log(byteArray[i])
-                  // }
                   var time = secondsToTime(bytesToNumber([byteArray[4], byteArray[5], byteArray[6]])/100)
                   var distance = bytesToNumber([byteArray[7], byteArray[8], byteArray[9]])/10
                   var avgsplit = secondsToTime(bytesToNumber([byteArray[18], byteArray[19]])/10)
@@ -95,37 +108,35 @@ noble.on('discover', function(peripheral) {
                     addValueToKey(peripheral.advertisement.localName, [time, distance, avgsplit])
                     workoutfinishedcount += 1
                     console.log('Workouts Finished: ' + workoutfinishedcount)
-                    // if(workoutfinishedcount % totalergs == 0){
-                    //   var value;
-                    //   console.log('Workout Summary')
-                    //   Object.keys(scores).forEach(function(key) {
-                    //       value = scores[key];
-                    //       //console.log(key)
-                    //       for(var i = 0; i < value.length; i++){
-                    //         console.log(key + ' F Time: ' + value[i][0] + ' Distance: ' + value[i][1] + ' Avg Split: ' + value[i][2])
-                    //       }
-                    //
-                    //   });
-                    // }
                   }
 
                 });
 
-                if(currstroke != undefined){
-                    currstroke.on('data', function(data, isNotification) {
+                if(currstroke2 != undefined){
+                    currstroke2.on('data', function(data, isNotification) {
                         var byteArray = new Uint8Array(data);
                         var curr_speed = (bytesToNumber([byteArray[3], byteArray[4]])/1000).toFixed(2)
                         var curr_rate = bytesToNumber([byteArray[5]])
                         var curr_split = secondsToTime(bytesToNumber([byteArray[7], byteArray[8]])/100)
-
                         console.log(peripheral.advertisement.localName + ' MON Speed: ' + curr_speed + 'm/s Split: ' + curr_split + ' Stroke Rate: ' + curr_rate)
+                  });
+                }
+
+                if(currstroke1 != undefined){
+                    currstroke1.on('data', function(data, isNotification) {
+                        var byteArray = new Uint8Array(data);
+                        var curr_distance = (bytesToNumber([byteArray[3], byteArray[4], byteArray[5]])/10).toFixed(2)
+                        console.log(peripheral.advertisement.localName + ' MON Distance: ' + curr_distance)
                   });
                 }
 
                 endworkout.subscribe(function(error) {
                   //console.log('Erg Workout End Notification On');
                 });
-                currstroke.subscribe(function(error) {
+                currstroke2.subscribe(function(error) {
+                  //console.log('Erg Workout End Notification On');
+                });
+                currstroke1.subscribe(function(error) {
                   //console.log('Erg Workout End Notification On');
                 });
             }

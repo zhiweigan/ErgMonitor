@@ -2,10 +2,12 @@
 #:import label kivy.uix.label
 #:import ListAdapter kivy.adapters.listadapter.ListAdapter
 
+
+
 <Row@BoxLayout>:
     canvas.before:
         Color:
-            rgba: 0.9098, 0.8314, 0.8196, 1
+            rgba: 230/255, 230/255, 230/255, 1
         Rectangle:
             size: self.size
             pos: self.pos
@@ -14,93 +16,125 @@
     avg_split: ''
     erg: ''
     Label:
-        font_name: 'OpenSans-Light'
+        font_name: 'fonts/OpenSans-Light'
         size_hint_x: 0.15
         color: 0,0,0,1
         text: root.erg
     Label:
-        font_name: 'OpenSans-Light'
+        font_name: 'fonts/OpenSans-Light'
         size_hint_x: 0.3
         color: 0,0,0,1
         text: root.time
     Label:
-        font_name: 'OpenSans-Light'
+        font_name: 'fonts/OpenSans-Light'
         size_hint_x: 0.25
         color: 0,0,0,1
         text: root.dist
     Label:
-        font_name: 'OpenSans-Light'
+        font_name: 'fonts/OpenSans-Light'
         size_hint_x: 0.3
         color: 0,0,0,1
         text: root.avg_split
 
 <Erg>:
+    size_hint: None, None
     size: 200, 100
-    ltext: ltext
+    lspeed: lspeed
+    lrate: lrate
+    lsplit: lsplit
+    ldist: ldist
     limg: limg
     AsyncImage:
         id: limg
         top: self.parent.top
-        x: 70
-        source: 'erg_offline.png'
+        x: dp(100)
+        source: 'images/erg_offline.png'
     Label:
         color: 0,0,0,1
-        id: ltext
+        id: lspeed
         font_size: 30
         top: self.parent.top
-        x: 520
-        font_name: 'OpenSans-Light'
+        x: dp(220)
+        font_name: 'fonts/OpenSans-Light'
+        text: ''
+    Label:
+        color: 0,0,0,1
+        id: lrate
+        font_size: 30
+        top: self.parent.top
+        x: dp(350)
+        font_name: 'fonts/OpenSans-Light'
+        text: ''
+    Label:
+        color: 0,0,0,1
+        id: lsplit
+        font_size: 30
+        top: self.parent.top
+        x: dp(470)
+        font_name: 'fonts/OpenSans-Light'
+        text: ''
+    Label:
+        color: 0,0,0,1
+        id: ldist
+        font_size: 30
+        top: self.parent.top
+        x: dp(580)
+        font_name: 'fonts/OpenSans-Light'
         text: ''
 
-
-
-<ErgMonitorBase>:
-
-
-    erg1: erg_1
-    erg2: erg_2
-    erg3: erg_3
-    erg4: erg_4
-    erg5: erg_5
-    erg6: erg_6
-    erg7: erg_7
-    erg8: erg_8
+<WorkoutScores>:
     tableList: tableList
 
-    Label:
-        color: 0,0,0,1
-        font_size: 30
-        top: root.top-10
-        font_name: 'OpenSans-Light'
-        x: 200
-        text: 'Erg Status'
-
-    Label:
-        color: 0,0,0,1
-        font_size: 30
-        top: root.top-20
-        font_name: 'OpenSans-Light'
-        x: root.width - 500
-        text: 'Completed\n Workouts'
+    canvas:
+        Color:
+            rgba: 38/255,38/255,38/255,1
+        Rectangle:
+            pos: 0,0
+            size: 110,1500
 
     Button:
-        top: root.top-20
-        x: root.width-350
+        pos_hint: {'x': 0.0105, 'y': 0.9}
+        size_hint: None, None
+        size: 75,75
+        border: 0,0,0,0
+        background_normal: 'images/console.png'
+        background_down: 'images/console2.png'
+        on_release:
+            root.manager.transition.direction = 'left'
+            root.manager.current = 'monitor'
+
+    Button:
+        pos_hint: {'x': 0.0105, 'y': 0.8}
+        size_hint: None, None
+        size: 75,75
+        border: 0,0,0,0
+        background_normal: 'images/graph3.png'
+        background_down: 'images/graph3.png'
+
+    Label:
+        color: 0,0,0,1
+        font_size: 40
+        pos_hint: {'x': -0.27, 'y': 0.445}
+        font_name: 'fonts/OpenSans-Regular'
+        text: 'Completed Workouts'
+
+    Button:
+        size_hint: None, None
+        pos_hint: {'x': 0.8, 'y': 0.9}
         size: 300,100
-        font_name: 'OpenSans-Light'
+        font_name: 'fonts/OpenSans-Light'
         text: 'Upload to sheets'
         on_release: app.upload()
 
     RecycleView:
-        top: root.top-150
-        x: root.width-550
+        size_hint: None,None
+        pos_hint: {'x': 0.11, 'y': 0.375}
         id: tableList
         scroll_type: ['bars', 'content']
         scroll_wheel_distance: dp(114)
         bar_width: dp(10)
         viewclass: 'Row'
-        #size_hint_x: .2
-        size: 500, 1000
+        size: 1000,600
         RecycleBoxLayout:
             cols:3
             default_size: None, dp(30)
@@ -110,35 +144,69 @@
             orientation: 'vertical'
             spacing: 1
 
+<ErgMonitorBase>:
+    erg1: erg_1
+    erg2: erg_2
+    erg3: erg_3
+    erg4: erg_4
+    erg5: erg_5
+    erg6: erg_6
+    erg7: erg_7
+    erg8: erg_8
+
+    canvas:
+        Color:
+            rgba: 38/255,38/255,38/255,1
+        Rectangle:
+            pos: 0,0
+            size: 110,1500
+
+    Button:
+        pos_hint: {'x': 0.0105, 'y': 0.9}
+        size_hint: None, None
+        size: 75,75
+        border: 0,0,0,0
+        background_normal: 'images/console3.png'
+        background_down: 'images/console3.png'
+
+    Button:
+        pos_hint: {'x': 0.0105, 'y': 0.8}
+        size_hint: None, None
+        size: 75,75
+        border: 0,0,0,0
+        background_normal: 'images/graph.png'
+        background_down: 'images/graph2.png'
+        on_release:
+            root.manager.transition.direction = 'left'
+            root.manager.current = 'scores'
+
+    Label:
+        color: 0,0,0,1
+        font_size: 40
+        pos_hint: {'x': -0.35, 'y': 0.445}
+        font_name: 'fonts/OpenSans-Regular'
+        text: 'Erg Status'
     Erg:
         id: erg_1
-        top: root.top-70
-        x: 50
+        top: root.top-dp(70)
     Erg:
         id: erg_2
-        top: root.top-180
-        x: 50
+        top: root.top-dp(120)
     Erg:
         id: erg_3
-        top: root.top-290
-        x: 50
+        top: root.top-dp(170)
     Erg:
         id: erg_4
-        top: root.top-400
-        x: 50
+        top: root.top-dp(220)
     Erg:
         id: erg_5
-        top: root.top-510
-        x: 50
+        top: root.top-dp(270)
     Erg:
         id: erg_6
-        top: root.top-620
-        x: 50
+        top: root.top-dp(320)
     Erg:
         id: erg_7
-        top: root.top-730
-        x: 50
+        top: root.top-dp(370)
     Erg:
         id: erg_8
-        top: root.top-840
-        x: 50
+        top: root.top-dp(420)
