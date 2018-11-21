@@ -40,13 +40,11 @@ class Erg(Widget):
 
     def change_text(self, _text):
         if 'Dist' in _text:
-            self.ldist.text = _text[_text.find('Distance: ')+len('Distance: '):]
+            self.ldist.text = _text[_text.find('Distance: ')+len('Distance: '):]+' m'
         else:
             self.lspeed.text = _text[_text.find('Speed: ')+len('Speed: '):_text.find(' Split:')]+' m/s'
             self.lrate.text = _text[_text.find('Rate: ')+len('Rate: '):]+' str/min'
             self.lsplit.text = _text[_text.find('Split: ')+len('Split: '):_text.find(' Stroke')]
-        #self.ltext.text = _text
-        pass
 
     def update_status(self, _connected):
         if _connected:
@@ -131,6 +129,7 @@ class ErgMonitorApp(App):
         self.root.stop.set()
 
     def upload(self):
+        # try:
         creds = ServiceAccountCredentials.from_json_keyfile_name('client_secret.json', scope)
         client = gspread.authorize(creds)
         sheet = client.open("Erg Scores Test").sheet1
@@ -149,8 +148,7 @@ class ErgMonitorApp(App):
                 row += [a,b,c]
             sheet.delete_row(counter)
             sheet.insert_row(row, counter)
-
-        print('Uploaded')
+            print('Uploaded')
 
 
     def build(self):
@@ -163,9 +161,6 @@ class ErgMonitorApp(App):
         self.start_update_thread()
         sm.add_widget(self.monitor)
         sm.add_widget(self.scores)
-        # sm.add_widget(self.scores)
-        #monitor.init_erg()
-        #Clock.schedule_interval(monitor.update, 1.0 / 60.0)
         return sm
 
 

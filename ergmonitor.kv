@@ -108,8 +108,8 @@
         size_hint: None, None
         size: 75,75
         border: 0,0,0,0
-        background_normal: 'images/graph3.png'
-        background_down: 'images/graph3.png'
+        background_normal: 'images/database3.png'
+        background_down: 'images/database3.png'
 
     Label:
         color: 0,0,0,1
@@ -128,13 +128,13 @@
 
     RecycleView:
         size_hint: None,None
-        pos_hint: {'x': 0.11, 'y': 0.375}
+        pos_hint: {'x': 0.11, 'y': 0}
         id: tableList
         scroll_type: ['bars', 'content']
         scroll_wheel_distance: dp(114)
         bar_width: dp(10)
         viewclass: 'Row'
-        size: 1000,600
+        size: 1000,1000
         RecycleBoxLayout:
             cols:3
             default_size: None, dp(30)
@@ -174,8 +174,8 @@
         size_hint: None, None
         size: 75,75
         border: 0,0,0,0
-        background_normal: 'images/graph.png'
-        background_down: 'images/graph2.png'
+        background_normal: 'images/database.png'
+        background_down: 'images/database2.png'
         on_release:
             root.manager.transition.direction = 'left'
             root.manager.current = 'scores'

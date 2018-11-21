@@ -1,12 +1,6 @@
 var noble = require('noble');
 const readline = require('readline');
 
-var scores = {};
-function addValueToKey(key, value) {
-    scores[key] = scores[key] || [];
-    scores[key].push(value);
-}
-
 function bytesToNumber(bytes) {
 	var total=0;
 	for (var i=0; i< bytes.length; i++) {
@@ -61,7 +55,7 @@ async function demo() {
   console.log('PM5 430503944 FIN Time: 6:50 Distance: 2000 Avg Split: 1:36.3')
 }
 
-demo();
+//demo();
 
 
 
@@ -91,55 +85,69 @@ noble.on('discover', function(peripheral) {
         peripheral.discoverServices(['ce06003043e511e4916c0800200c9a66'], function(error, services) {
           //console.log('discovered the following services:');
           //console.log('  ' + i + ' uuid: ' + services[0].uuid);
-          services[0].discoverCharacteristics(['ce06003943e511e4916c0800200c9a66', 'ce06003243e511e4916c0800200c9a66', 'ce06003143e511e4916c0800200c9a66'], function(error, characteristics) {
-            var endworkout = characteristics[2];
+          services[0].discoverCharacteristics(['ce06003143e511e4916c0800200c9a66', 'ce06003243e511e4916c0800200c9a66', 'ce06003743e511e4916c0800200c9a66', 'ce06003843e511e4916c0800200c9a66', 'ce06003943e511e4916c0800200c9a66'], function(error, characteristics) {
+            var endworkout = characteristics[4];
             var currstroke2 = characteristics[1];
             var currstroke1 = characteristics[0];
+            var interval1 = characteristics[2];
+            var interval2 = characteristics[3];
 
-            if(endworkout != undefined){
-                endworkout.on('data', function(data, isNotification) {
-                  var byteArray = new Uint8Array(data);
-                  var time = secondsToTime(bytesToNumber([byteArray[4], byteArray[5], byteArray[6]])/100)
-                  var distance = bytesToNumber([byteArray[7], byteArray[8], byteArray[9]])/10
-                  var avgsplit = secondsToTime(bytesToNumber([byteArray[18], byteArray[19]])/10)
+            endworkout.on('data', function(data, isNotification) {
+              var byteArray = new Uint8Array(data);
+              var time = secondsToTime(bytesToNumber([byteArray[4], byteArray[5], byteArray[6]])/100)
+              var distance = bytesToNumber([byteArray[7], byteArray[8], byteArray[9]])/10
+              var avgsplit = secondsToTime(bytesToNumber([byteArray[18], byteArray[19]])/10)
 
-                  if(byteArray[17] != 0 && byteArray[17] != 1){
-                    console.log(peripheral.advertisement.localName + ' FIN Time: ' + time + ' Distance: ' + distance + ' Avg Split: ' + avgsplit)
-                    addValueToKey(peripheral.advertisement.localName, [time, distance, avgsplit])
-                    workoutfinishedcount += 1
-                    console.log('Workouts Finished: ' + workoutfinishedcount)
-                  }
+              if(byteArray[17] != 0 && byteArray[17] != 1 && byteArray[17] != 6 && byteArray[17] != 7 && byteArray[17] != 8 && byteArray[17] != 9){
+                console.log(peripheral.advertisement.localName + ' FIN Time: ' + time + ' Distance: ' + distance + ' Avg Split: ' + avgsplit)
+              }
 
-                });
+            });
 
-                if(currstroke2 != undefined){
-                    currstroke2.on('data', function(data, isNotification) {
-                        var byteArray = new Uint8Array(data);
-                        var curr_speed = (bytesToNumber([byteArray[3], byteArray[4]])/1000).toFixed(2)
-                        var curr_rate = bytesToNumber([byteArray[5]])
-                        var curr_split = secondsToTime(bytesToNumber([byteArray[7], byteArray[8]])/100)
-                        console.log(peripheral.advertisement.localName + ' MON Speed: ' + curr_speed + 'm/s Split: ' + curr_split + ' Stroke Rate: ' + curr_rate)
-                  });
-                }
+            currstroke2.on('data', function(data, isNotification) {
+              var byteArray = new Uint8Array(data);
+              var curr_speed = (bytesToNumber([byteArray[3], byteArray[4]])/1000).toFixed(2)
+              var curr_rate = bytesToNumber([byteArray[5]])
+              var curr_split = secondsToTime(bytesToNumber([byteArray[7], byteArray[8]])/100)
+              console.log(peripheral.advertisement.localName + ' MON Speed: ' + curr_speed + 'm/s Split: ' + curr_split + ' Stroke Rate: ' + curr_rate)
+            });
 
-                if(currstroke1 != undefined){
-                    currstroke1.on('data', function(data, isNotification) {
-                        var byteArray = new Uint8Array(data);
-                        var curr_distance = (bytesToNumber([byteArray[3], byteArray[4], byteArray[5]])/10).toFixed(2)
-                        console.log(peripheral.advertisement.localName + ' MON Distance: ' + curr_distance)
-                  });
-                }
 
-                endworkout.subscribe(function(error) {
-                  //console.log('Erg Workout End Notification On');
-                });
-                currstroke2.subscribe(function(error) {
-                  //console.log('Erg Workout End Notification On');
-                });
-                currstroke1.subscribe(function(error) {
-                  //console.log('Erg Workout End Notification On');
-                });
-            }
+
+            currstroke1.on('data', function(data, isNotification) {
+              var byteArray = new Uint8Array(data);
+              var curr_distance = (bytesToNumber([byteArray[3], byteArray[4], byteArray[5]])/10).toFixed(2)
+              console.log(peripheral.advertisement.localName + ' MON Distance: ' + curr_distance)
+            });
+
+
+            interval1.on('data', function(data, isNotification) {
+              var byteArray = new Uint8Array(data);
+              var time = secondsToTime(bytesToNumber([byteArray[6], byteArray[7], byteArray[8]])/10)
+              var distance = bytesToNumber([byteArray[9], byteArray[10], byteArray[11]])
+              console.log(peripheral.advertisement.localName + ' FIN Time: ' + time + ' Distance: ' + distance + ' Avg Split: ' + 'N/A')
+            });
+
+            // if(forcecurve != undefined){
+            //     forcecurve.on('data', function(data, isNotification) {
+            //         var byteArray = new Uint8Array(data);
+            //         process.stdout.write('force curve ')
+            //         var i;
+            //         for (i = 0; i < byteArray.length; i++) {
+            //             process.stdout.write(byteArray[i] + ' ');
+            //         }
+            //         console.log('')
+            //   });
+            // }
+
+            endworkout.subscribe();
+            currstroke2.subscribe();
+            currstroke1.subscribe();
+            interval1.subscribe();
+            // forcecurve.subscribe(function(error) {
+            //
+            // });
+
         });
 
         });
@@ -148,28 +156,3 @@ noble.on('discover', function(peripheral) {
     }
 
 });
-
-
-
-//monitor, store, set workout
-
-// 106
-// 37
-// 37
-// 16
-// 208
-// 7
-// 0
-// 12
-// 3
-// 0
-// 30
-// 0
-// 0
-// 0
-// 0
-// 97
-// 0
-// 5
-// 2
-// 5
