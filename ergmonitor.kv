@@ -44,17 +44,27 @@
     lsplit: lsplit
     ldist: ldist
     limg: limg
+    lname: lname
     AsyncImage:
         id: limg
         top: self.parent.top
         x: dp(100)
         source: 'images/erg_offline.png'
+    TextInput:
+        id: lname
+        color: 0,0,0,1
+        font_size: 30
+        top: self.parent.top-dp(10)
+        x: dp(160)
+        font_name: 'fonts/OpenSans-Light'
+        text: ''
+        size: 200,50
     Label:
         color: 0,0,0,1
         id: lspeed
         font_size: 30
         top: self.parent.top
-        x: dp(220)
+        x: dp(300)
         font_name: 'fonts/OpenSans-Light'
         text: ''
     Label:
@@ -62,7 +72,7 @@
         id: lrate
         font_size: 30
         top: self.parent.top
-        x: dp(350)
+        x: dp(390)
         font_name: 'fonts/OpenSans-Light'
         text: ''
     Label:
@@ -81,6 +91,140 @@
         x: dp(580)
         font_name: 'fonts/OpenSans-Light'
         text: ''
+
+<Settings>:
+    erg1: erg_1
+    erg2: erg_2
+    erg3: erg_3
+    erg4: erg_4
+    erg5: erg_5
+    erg6: erg_6
+    erg7: erg_7
+    erg8: erg_8
+    canvas.before:
+        Color:
+            rgba: 1, 1, 1, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    canvas:
+        Color:
+            rgba: 38/255,38/255,38/255,1
+        Rectangle:
+            pos: 0,0
+            size: 110,1500
+
+    Button:
+        pos_hint: {'x': 0.0105, 'y': 0.9}
+        size_hint: None, None
+        size: 75,75
+        border: 0,0,0,0
+        background_normal: 'images/console.png'
+        background_down: 'images/console2.png'
+        on_release:
+            root.manager.transition.direction = 'left'
+            root.manager.current = 'monitor'
+
+    Button:
+        pos_hint: {'x': 0.0105, 'y': 0.8}
+        size_hint: None, None
+        size: 75,75
+        border: 0,0,0,0
+        background_normal: 'images/database.png'
+        background_down: 'images/database2.png'
+        on_release:
+            root.manager.transition.direction = 'left'
+            root.manager.current = 'scores'
+
+    Button:
+        pos_hint: {'x': 0.0105, 'y': 0.05}
+        size_hint: None, None
+        size: 75,75
+        border: 0,0,0,0
+        background_normal: 'images/settings3.png'
+        background_down: 'images/settings3.png'
+
+    Label:
+        color: 0,0,0,1
+        font_size: 40
+        pos_hint: {'x': -0.27, 'y': 0.445}
+        font_name: 'fonts/OpenSans-Regular'
+        text: 'Settings'
+
+    Label:
+        color: 0,0,0,1
+        pos_hint: {'x': -0.35, 'y': 0.37}
+        font_size: 36
+        font_name: 'fonts/OpenSans-Regular'
+        text: 'Erg IDs'
+
+    TextInput:
+        id: erg_1
+        pos_hint: {'x': 0.1, 'y': 0.78}
+        size_hint_x: 0.3
+        size_hint_y: 0.05
+        text: app.savedict['erg1']
+
+    TextInput:
+        id: erg_2
+        pos_hint: {'x': 0.1, 'y': 0.71}
+        size_hint_x: 0.3
+        size_hint_y: 0.05
+        text: app.savedict['erg2']
+
+    TextInput:
+        id: erg_3
+        pos_hint: {'x': 0.1, 'y': 0.64}
+        size_hint_x: 0.3
+        size_hint_y: 0.05
+        text: app.savedict['erg3']
+
+    TextInput:
+        id: erg_4
+        pos_hint: {'x': 0.1, 'y': 0.57}
+        size_hint_x: 0.3
+        size_hint_y: 0.05
+        text: app.savedict['erg4']
+
+    TextInput:
+        id: erg_5
+        pos_hint: {'x': 0.1, 'y': 0.50}
+        size_hint_x: 0.3
+        size_hint_y: 0.05
+        text: app.savedict['erg5']
+
+
+    TextInput:
+        id: erg_6
+        pos_hint: {'x': 0.1, 'y': 0.43}
+        size_hint_x: 0.3
+        size_hint_y: 0.05
+        text: app.savedict['erg6']
+
+
+    TextInput:
+        id: erg_7
+        pos_hint: {'x': 0.1, 'y': 0.36}
+        size_hint_x: 0.3
+        size_hint_y: 0.05
+        text: app.savedict['erg7']
+
+
+    TextInput:
+        id: erg_8
+        pos_hint: {'x': 0.1, 'y': 0.29}
+        size_hint_x: 0.3
+        size_hint_y: 0.05
+        text: app.savedict['erg8']
+
+    Button:
+        size_hint: None, None
+        pos_hint: {'x': 0.8, 'y': 0.1}
+        size: 300,100
+        font_name: 'fonts/OpenSans-Light'
+        text: 'Save Settings'
+        on_release: app.save()
+
 
 <WorkoutScores>:
     tableList: tableList
@@ -110,6 +254,17 @@
         border: 0,0,0,0
         background_normal: 'images/database3.png'
         background_down: 'images/database3.png'
+
+    Button:
+        pos_hint: {'x': 0.0105, 'y': 0.05}
+        size_hint: None, None
+        size: 75,75
+        border: 0,0,0,0
+        background_normal: 'images/settings.png'
+        background_down: 'images/settings2.png'
+        on_release:
+            root.manager.transition.direction = 'left'
+            root.manager.current = 'settings'
 
     Label:
         color: 0,0,0,1
@@ -179,6 +334,16 @@
         on_release:
             root.manager.transition.direction = 'left'
             root.manager.current = 'scores'
+    Button:
+        pos_hint: {'x': 0.0105, 'y': 0.05}
+        size_hint: None, None
+        size: 75,75
+        border: 0,0,0,0
+        background_normal: 'images/settings.png'
+        background_down: 'images/settings2.png'
+        on_release:
+            root.manager.transition.direction = 'left'
+            root.manager.current = 'settings'
 
     Label:
         color: 0,0,0,1

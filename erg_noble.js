@@ -53,18 +53,15 @@ async function demo() {
   console.log('PM5 430500339 FIN Time: 15:0 Distance: 4342 Avg Split: 2:10.2')
   console.log('PM5 430503944 FIN Time: 15:0 Distance: 5345 Avg Split: 2:15.4')
   console.log('PM5 430503944 FIN Time: 6:50 Distance: 2000 Avg Split: 1:36.3')
+  console.log('PM5 430503944 MON Speed: 24 Split: 1:59 Stroke Rate: 27')
+  console.log('PM5 430503944 MON Distance: 800')
 }
 
-//demo();
+demo();
 
 
 
-noble.on('disconnect', function(data) {
-      console.log("disconnected")
-      console.log(data)
-      count -= 1;
-      noble.startScanning();
-});
+
 
 
 var totalergs = 8
@@ -82,6 +79,14 @@ noble.on('discover', function(peripheral) {
           console.log('Stopped Scanning')
           noble.stopScanning();
         }
+
+        peripheral.on('disconnect', function(data) {
+              console.log("disconnected")
+              console.log(data)
+              count -= 1;
+              noble.startScanning();
+        });
+
         peripheral.discoverServices(['ce06003043e511e4916c0800200c9a66'], function(error, services) {
           //console.log('discovered the following services:');
           //console.log('  ' + i + ' uuid: ' + services[0].uuid);

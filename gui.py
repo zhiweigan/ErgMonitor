@@ -15,39 +15,43 @@ from kivy.core.window import Window
 Window.clearcolor = (1, 1, 1, 1)
 from kivy.uix.screenmanager import ScreenManager, Screen, NoTransition
 from kivy.loader import Loader
+from kivy.uix.textinput import TextInput
+import json
+
 
 d = defaultdict(list)
 
+
 scope = ['https://spreadsheets.google.com/feeds',
          'https://www.googleapis.com/auth/drive']
-PMdict = {
-'PM5 430500339':'erg1',
-'PM5 430504875':'erg2',
-'PM5 430503904':'erg3',
-'PM5 430503899':'erg4',
-'PM5 430503944':'erg5',
-'PM5 430503892':'erg6',
-'PM5 430568518':'erg7',
-'PM5 430074445':'erg8'
-}
+
 
 
 class Erg(Widget):
     connected = BooleanProperty(False)
-    speed = StringProperty('0')
-    split = StringProperty('0:00')
-    rate = StringProperty('0')
 
     def change_text(self, _text):
+
         if 'Dist' in _text:
-            self.ldist.text = _text[_text.find('Distance: ')+len('Distance: '):]+' m'
+            self.disthist.append(int(_text[_text.find('Distance: ')+len('Distance: '):]))
+            self.ldist.text = str(self.disthist[-1]) + ' m'
         else:
-            self.lspeed.text = _text[_text.find('Speed: ')+len('Speed: '):_text.find(' Split:')]+' m/s'
-            self.lrate.text = _text[_text.find('Rate: ')+len('Rate: '):]+' str/min'
-            self.lsplit.text = _text[_text.find('Split: ')+len('Split: '):_text.find(' Stroke')]
+            self.speedhist.append(int(_text[_text.find('Speed: ')+len('Speed: '):_text.find(' Split:')]))
+            self.lspeed.text = str(self.speedhist[-1]) +' m/s'
+
+            self.ratehist.append(int(_text[_text.find('Rate: ')+len('Rate: '):]))
+            self.lrate.text = str(self.ratehist[-1]) +' str/min'
+
+            self.splithist.append(_text[_text.find('Speed: ')+len('Speed: '):_text.find(' Split:')])
+            self.lsplit.text = self.splithist[-1]
+        print(self.speedhist)
 
     def update_status(self, _connected):
         if _connected:
+            self.speedhist = []
+            self.splithist = []
+            self.ratehist = []
+            self.disthist = []
             self.change_text('Speed: 0 Split: 0:00 Stroke Rate: 0')
             self.connected = True
             self.limg.source  = 'images/erg_online.png'
@@ -59,20 +63,21 @@ class Erg(Widget):
 
 
 class ErgMonitorBase(Screen):
-    erg1 = ObjectProperty(None)
-    erg2 = ObjectProperty(None)
-    erg3 = ObjectProperty(None)
-    erg4 = ObjectProperty(None)
-    erg5 = ObjectProperty(None)
-    erg6 = ObjectProperty(None)
-    erg7 = ObjectProperty(None)
-    erg8 = ObjectProperty(None)
+    pass
 
 class WorkoutScores(Screen):
-    tableList = ObjectProperty(None)
+    pass
 
+class Settings(Screen):
+    pass
 
 class ErgMonitorApp(App):
+
+
+    with open('settings.json') as f:
+        savedict = json.load(f)
+    PMDict = {v: k for k, v in savedict.items()}
+
     stop = threading.Event()
     q = KivyQueue(notify_func=None)
 
@@ -85,16 +90,15 @@ class ErgMonitorApp(App):
             time = pmdata[pmdata.find('Time: ')+len('Time: '):pmdata.find(' Distance')]
             distance = pmdata[pmdata.find('Distance: ')+len('Distance: '):pmdata.find(' Avg')]
             avg_split = pmdata[pmdata.find('Avg Split: ')+len('Avg Split: '):]
-            d[PMdict[pmid][-1]].append((time, distance, avg_split))
-            self.scores.tableList.data.insert(1,{'erg': PMdict[pmid][-1], 'time': str(time), 'dist': str(distance), 'avg_split': str(avg_split)})
-
+            d[self.PMdict[pmid][-1]].append((time, distance, avg_split))
+            self.scores.tableList.data.insert(1,{'erg': self.PMdict[pmid][-1], 'time': str(time), 'dist': str(distance), 'avg_split': str(avg_split)})
         try:
             if 'CON' in pmdata:
-                getattr(self.monitor, PMdict[pmid]).update_status(1)
+                getattr(self.monitor, self.PMdict[pmid]).update_status(1)
             if 'DIS' in pmdata:
-                getattr(self.monitor, PMdict[pmid]).update_status(0)
+                getattr(self.monitor, self.PMdict[pmid]).update_status(0)
             if 'MON' in pmdata:
-                getattr(self.monitor, PMdict[pmid]).change_text(pmdata[4:])
+                getattr(self.monitor, self.PMdict[pmid]).change_text(pmdata[4:])
         except:
             pass
 
@@ -128,6 +132,20 @@ class ErgMonitorApp(App):
         # keep running until all secondary threads exit.
         self.root.stop.set()
 
+    def save(self):
+        self.savedict['erg1'] = self.settings.erg1.text
+        self.savedict['erg2'] = self.settings.erg2.text
+        self.savedict['erg3'] = self.settings.erg3.text
+        self.savedict['erg4'] = self.settings.erg4.text
+        self.savedict['erg5'] = self.settings.erg5.text
+        self.savedict['erg6'] = self.settings.erg6.text
+        self.savedict['erg7'] = self.settings.erg7.text
+        self.savedict['erg8'] = self.settings.erg8.text
+
+        self.PMdict = {v: k for k, v in self.savedict.items()}
+        with open('settings.json', 'w') as outfile:
+            json.dump(self.savedict, outfile)
+
     def upload(self):
         # try:
         creds = ServiceAccountCredentials.from_json_keyfile_name('client_secret.json', scope)
@@ -156,11 +174,14 @@ class ErgMonitorApp(App):
         Window.minimum_width = 800
         #Window.borderless = 1
         sm = ScreenManager(transition=NoTransition())
+        self.settings = Settings(name='settings')
         self.monitor = ErgMonitorBase(name='monitor')
         self.scores = WorkoutScores(name='scores')
         self.start_update_thread()
         sm.add_widget(self.monitor)
         sm.add_widget(self.scores)
+        sm.add_widget(self.settings)
+
         return sm
 
 
