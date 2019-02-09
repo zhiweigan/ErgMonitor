@@ -21,6 +21,7 @@ import json
 from kivy.garden.graph import Graph, MeshLinePlot
 import socket
 from kivy.utils import get_color_from_hex as rgb
+import numpy as np
 
 
 d = defaultdict(list)
@@ -83,6 +84,8 @@ class Settings(Screen):
 class ErgGraph(Widget):
     pass
 
+
+
 class GraphScreen(Screen):
     erg1 = ObjectProperty(None)
     erg2 = ObjectProperty(None)
@@ -120,6 +123,10 @@ class GraphScreen(Screen):
         for i in range(8):
             self.rateplots[i].points = [(x,int(y)) for x,y in getattr(app.monitor, 'erg'+str(i+1)).ratehist]
             self.splitplots[i].points = [(x,int(y)) for x,y in getattr(app.monitor, 'erg' + str(i + 1)).splithist]
+
+    def save_graph(self):
+        for i in range(8):
+            np.savetxt('erg'+str(i+1)+'.csv', getattr(app.monitor, 'erg'+str(i+1)).ratehist, delimiter=',', fmt='%s')
 
 
 class ErgMonitorApp(App):
@@ -218,6 +225,7 @@ class ErgMonitorApp(App):
             sheet.delete_row(counter)
             sheet.insert_row(row, counter)
             print('Uploaded')
+
 
 
     def build(self):

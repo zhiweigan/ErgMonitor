@@ -164,6 +164,14 @@
         id: erg_8
         pos_hint: {'x': 0.74, 'y': 0.20}
 
+    Button:
+        size_hint: None, None
+        pos_hint: {'x': 0.8, 'y': 0.2}
+        size: 300,100
+        font_name: 'fonts/OpenSans-Light'
+        text: 'Save Graph Data'
+        on_release: self.parent.save_graph()
+
 
 
 <Erg>:
