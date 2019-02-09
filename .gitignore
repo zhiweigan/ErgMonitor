@@ -1,0 +1,12 @@
+
+\.idea/
+
+__pycache__/
+
+*.toc
+
+build/ergmonitor/
+
+dist/ergmonitor\.app/Contents/
+
+dist/

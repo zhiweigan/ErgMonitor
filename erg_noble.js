@@ -38,23 +38,33 @@ function sleep(ms) {
 async function demo() {
   console.log('Taking a break...');
   await sleep(2000);
-  console.log('Two seconds later');
-  console.log('PM5 430500339 CON')
-  console.log('PM5 430500339 MON Speed: 20 Split: 2:12 Stroke Rate: 32')
-  console.log('PM5 430500339 MON Distance: 100')
-  console.log('PM5 430504875 CON')
-  console.log('PM5 430504875 MON Speed: 21 Split: 1:59 Stroke Rate: 35')
-  console.log('PM5 430504875 MON Distance: 200')
-  console.log('PM5 430503944 CON')
-  console.log('PM5 430503944 MON Speed: 22 Split: 1:58 Stroke Rate: 26')
-  console.log('PM5 430503944 MON Distance: 400')
-  console.log('PM5 430500339 FIN Time: 6:15 Distance: 2000 Avg Split: 1:30.9')
-  console.log('PM5 430504875 FIN Time: 6:45 Distance: 2000 Avg Split: 1:35.7')
-  console.log('PM5 430500339 FIN Time: 15:0 Distance: 4342 Avg Split: 2:10.2')
-  console.log('PM5 430503944 FIN Time: 15:0 Distance: 5345 Avg Split: 2:15.4')
-  console.log('PM5 430503944 FIN Time: 6:50 Distance: 2000 Avg Split: 1:36.3')
-  console.log('PM5 430503944 MON Speed: 24 Split: 1:59 Stroke Rate: 27')
-  console.log('PM5 430503944 MON Distance: 800')
+
+  var messages = ['PM5 430500339 CON', 'PM5 430500339 MON Speed: 20 Split: 2:12 Stroke Rate: 32', 'PM5 430500339 MON Distance: 100', 'PM5 430504875 CON', 'PM5 430500339 FIN Time: 6:15 Distance: 2000 Avg Split: 1:30.9']
+  for(var i = 0; i < 10; i++){
+    var message = messages[i]
+    client.send(message, 0, message.length, PORT, HOST, function(err, bytes) {
+                  if (err) throw err;
+                  console.log('UDP message sent to ' + HOST +':'+ PORT)
+  });
+  }
+  // console.log('Two seconds later');
+  // console.log('PM5 430500339 CON')
+  // console.log('PM5 430500339 MON Speed: 20 Split: 2:12 Stroke Rate: 32')
+  // console.log('PM5 430500339 MON Distance: 100')
+  // console.log('PM5 430504875 CON')
+  // console.log('PM5 430504875 MON Speed: 21 Split: 1:59 Stroke Rate: 35')
+  // console.log('PM5 430504875 MON Distance: 200')
+  // console.log('PM5 430503944 CON')
+  // console.log('PM5 430503944 MON Speed: 22 Split: 1:58 Stroke Rate: 26')
+  // console.log('PM5 430503944 MON Distance: 400')
+  // console.log('PM5 430500339 FIN Time: 6:15 Distance: 2000 Avg Split: 1:30.9')
+  // console.log('PM5 430504875 FIN Time: 6:45 Distance: 2000 Avg Split: 1:35.7')
+  // console.log('PM5 430500339 FIN Time: 15:0 Distance: 4342 Avg Split: 2:10.2')
+  // console.log('PM5 430503944 FIN Time: 15:0 Distance: 5345 Avg Split: 2:15.4')
+  // console.log('PM5 430503944 FIN Time: 6:50 Distance: 2000 Avg Split: 1:36.3')
+  // console.log('PM5 430503944 MON Speed: 24 Split: 1:59 Stroke Rate: 27')
+  // console.log('PM5 430503944 MON Distance: 800')
+
 }
 
 demo();
@@ -62,6 +72,11 @@ demo();
 
 
 
+var dgram = require('dgram');
+const client = dgram.createSocket('udp4');
+
+var HOST = '127.0.0.1';
+var PORT = 6900;
 
 
 var totalergs = 8
@@ -81,7 +96,11 @@ noble.on('discover', function(peripheral) {
         }
 
         peripheral.on('disconnect', function(data) {
-              console.log("disconnected")
+              var message = peripheral.advertisement.localName +' DIS'
+              client.send(message, 0, message.length, PORT, HOST, function(err, bytes) {
+                  if (err) throw err;
+                  console.log('UDP message sent to ' + HOST +':'+ PORT);
+                });
               console.log(data)
               count -= 1;
               noble.startScanning();
@@ -104,7 +123,11 @@ noble.on('discover', function(peripheral) {
               var avgsplit = secondsToTime(bytesToNumber([byteArray[18], byteArray[19]])/10)
 
               if(byteArray[17] != 0 && byteArray[17] != 1 && byteArray[17] != 6 && byteArray[17] != 7 && byteArray[17] != 8 && byteArray[17] != 9){
-                console.log(peripheral.advertisement.localName + ' FIN Time: ' + time + ' Distance: ' + distance + ' Avg Split: ' + avgsplit)
+                var message = peripheral.advertisement.localName + ' FIN Time: ' + time + ' Distance: ' + distance + ' Avg Split: ' + avgsplit
+                client.send(message, 0, message.length, PORT, HOST, function(err, bytes) {
+                  if (err) throw err;
+                  console.log('UDP message sent to ' + HOST +':'+ PORT);
+                });
               }
 
             });
@@ -114,7 +137,11 @@ noble.on('discover', function(peripheral) {
               var curr_speed = (bytesToNumber([byteArray[3], byteArray[4]])/1000).toFixed(2)
               var curr_rate = bytesToNumber([byteArray[5]])
               var curr_split = secondsToTime(bytesToNumber([byteArray[7], byteArray[8]])/100)
-              console.log(peripheral.advertisement.localName + ' MON Speed: ' + curr_speed + 'm/s Split: ' + curr_split + ' Stroke Rate: ' + curr_rate)
+              var message = peripheral.advertisement.localName + ' MON Speed: ' + curr_speed + 'm/s Split: ' + curr_split + ' Stroke Rate: ' + curr_rate
+              client.send(message, 0, message.length, PORT, HOST, function(err, bytes) {
+                  if (err) throw err;
+                  console.log('UDP message sent to ' + HOST +':'+ PORT);
+              });
             });
 
 
@@ -122,7 +149,11 @@ noble.on('discover', function(peripheral) {
             currstroke1.on('data', function(data, isNotification) {
               var byteArray = new Uint8Array(data);
               var curr_distance = (bytesToNumber([byteArray[3], byteArray[4], byteArray[5]])/10).toFixed(2)
-              console.log(peripheral.advertisement.localName + ' MON Distance: ' + curr_distance)
+              var message = peripheral.advertisement.localName + ' MON Distance: ' + curr_distance
+              client.send(message, 0, message.length, PORT, HOST, function(err, bytes) {
+                  if (err) throw err;
+                  console.log('UDP message sent to ' + HOST +':'+ PORT);
+              });
             });
 
 
@@ -130,7 +161,11 @@ noble.on('discover', function(peripheral) {
               var byteArray = new Uint8Array(data);
               var time = secondsToTime(bytesToNumber([byteArray[6], byteArray[7], byteArray[8]])/10)
               var distance = bytesToNumber([byteArray[9], byteArray[10], byteArray[11]])
-              console.log(peripheral.advertisement.localName + ' FIN Time: ' + time + ' Distance: ' + distance + ' Avg Split: ' + 'N/A')
+              var message = peripheral.advertisement.localName + ' FIN Time: ' + time + ' Distance: ' + distance + ' Avg Split: ' + 'N/A'
+              client.send(message, 0, message.length, PORT, HOST, function(err, bytes) {
+                  if (err) throw err;
+                  console.log('UDP message sent to ' + HOST +':'+ PORT);
+              });
             });
 
             // if(forcecurve != undefined){
@@ -161,3 +196,4 @@ noble.on('discover', function(peripheral) {
     }
 
 });
+

@@ -1,7 +1,7 @@
 #:kivy 1.0.9
 #:import label kivy.uix.label
 #:import ListAdapter kivy.adapters.listadapter.ListAdapter
-
+#:import MeshLinePlot kivy.garden.graph.MeshLinePlot
 
 
 <Row@BoxLayout>:
@@ -35,6 +35,136 @@
         size_hint_x: 0.3
         color: 0,0,0,1
         text: root.avg_split
+
+<ErgGraph>:
+    size_hint: None, None
+    size: 400, 400
+    graph: graph
+    ergNum: ergNum
+
+
+    Label:
+        id: ergNum
+        color: 0,0,0,1
+        font_size: 30
+        top: self.parent.top
+        x: self.parent.x
+        font_name: 'fonts/OpenSans-Light'
+        text: 'Erg1'
+
+    Graph:
+        id: graph
+        plot: MeshLinePlot
+        xlabel:'Time'
+        ylabel:'Rate/Split'
+        x_ticks_minor:5
+        x_tics_major:25
+        y_ticks_major:1
+        y_grid_label:True
+        x_grid_label:True
+        padding:5
+        x_grid:True
+        y_grid:True
+        xmin:-0
+        xmax:100
+        ymin:-1
+        ymax:1
+        size_hint: None, None
+        size: 325, 325
+        x: self.parent.x
+        top: self.parent.top - 75
+
+<GraphScreen>:
+    erg1: erg_1
+    erg2: erg_2
+    erg3: erg_3
+    erg4: erg_4
+    erg5: erg_5
+    erg6: erg_6
+    erg7: erg_7
+    erg8: erg_8
+
+    canvas:
+        Color:
+            rgba: 38/255,38/255,38/255,1
+        Rectangle:
+            pos: 0,0
+            size: 110,1500
+
+    Button:
+        pos_hint: {'x': 0.0105, 'y': 0.9}
+        size_hint: None, None
+        size: 75,75
+        border: 0,0,0,0
+        background_normal: 'images/console.png'
+        background_down: 'images/console2.png'
+        on_release:
+            root.manager.transition.direction = 'left'
+            root.manager.current = 'monitor'
+
+    Button:
+        pos_hint: {'x': 0.0105, 'y': 0.8}
+        size_hint: None, None
+        size: 75,75
+        border: 0,0,0,0
+        background_normal: 'images/database.png'
+        background_down: 'images/database2.png'
+        on_release:
+            root.manager.transition.direction = 'left'
+            root.manager.current = 'scores'
+
+    Button:
+        pos_hint: {'x': 0.0105, 'y': 0.05}
+        size_hint: None, None
+        size: 75,75
+        border: 0,0,0,0
+        background_normal: 'images/settings.png'
+        background_down: 'images/settings2.png'
+        on_release:
+            root.manager.transition.direction = 'left'
+            root.manager.current = 'settings'
+
+    Button:
+        pos_hint: {'x': 0.0105, 'y': 0.7}
+        size_hint: None, None
+        size: 75,75
+        border: 0,0,0,0
+        background_normal: 'images/graph3.png'
+        background_down: 'images/graph3.png'
+
+    Label:
+        color: 0,0,0,1
+        font_size: 40
+        pos_hint: {'x': -0.35, 'y': 0.445}
+        font_name: 'fonts/OpenSans-Regular'
+        text: 'Erg Graphs'
+
+    ErgGraph:
+        id: erg_1
+        pos_hint: {'x': 0.1, 'y': 0.50}
+    ErgGraph:
+        id: erg_2
+        pos_hint: {'x': 0.32, 'y': 0.50}
+    ErgGraph:
+        id: erg_3
+        pos_hint: {'x': 0.53, 'y': 0.50}
+    ErgGraph:
+        id: erg_4
+        pos_hint: {'x': 0.74, 'y': 0.50}
+    ErgGraph:
+        id: erg_5
+        pos_hint: {'x': 0.1, 'y': 0.20}
+    ErgGraph:
+        id: erg_6
+        pos_hint: {'x': 0.32, 'y': 0.20}
+    ErgGraph:
+        id: erg_7
+        pos_hint: {'x': 0.53, 'y': 0.20}
+    ErgGraph:
+        id: erg_8
+        pos_hint: {'x': 0.74, 'y': 0.20}
+
+
 
 <Erg>:
     size_hint: None, None
@@ -143,6 +273,17 @@
         border: 0,0,0,0
         background_normal: 'images/settings3.png'
         background_down: 'images/settings3.png'
+
+    Button:
+        pos_hint: {'x': 0.0105, 'y': 0.7}
+        size_hint: None, None
+        size: 75,75
+        border: 0,0,0,0
+        background_normal: 'images/graph.png'
+        background_down: 'images/graph2.png'
+        on_release:
+            root.manager.transition.direction = 'left'
+            root.manager.current = 'graph'
 
     Label:
         color: 0,0,0,1
@@ -266,6 +407,17 @@
             root.manager.transition.direction = 'left'
             root.manager.current = 'settings'
 
+    Button:
+        pos_hint: {'x': 0.0105, 'y': 0.7}
+        size_hint: None, None
+        size: 75,75
+        border: 0,0,0,0
+        background_normal: 'images/graph.png'
+        background_down: 'images/graph2.png'
+        on_release:
+            root.manager.transition.direction = 'left'
+            root.manager.current = 'graph'
+
     Label:
         color: 0,0,0,1
         font_size: 40
@@ -344,6 +496,17 @@
         on_release:
             root.manager.transition.direction = 'left'
             root.manager.current = 'settings'
+
+    Button:
+        pos_hint: {'x': 0.0105, 'y': 0.7}
+        size_hint: None, None
+        size: 75,75
+        border: 0,0,0,0
+        background_normal: 'images/graph.png'
+        background_down: 'images/graph2.png'
+        on_release:
+            root.manager.transition.direction = 'left'
+            root.manager.current = 'graph'
 
     Label:
         color: 0,0,0,1

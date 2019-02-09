@@ -7,6 +7,7 @@ from kivy.vector import Vector
 from kivy.clock import Clock
 from kivy.uix.image import Image
 from KivyQueueClass import KivyQueue
+from math import sin, cos
 import threading
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
@@ -17,6 +18,9 @@ from kivy.uix.screenmanager import ScreenManager, Screen, NoTransition
 from kivy.loader import Loader
 from kivy.uix.textinput import TextInput
 import json
+from kivy.garden.graph import Graph, MeshLinePlot
+import socket
+from kivy.utils import get_color_from_hex as rgb
 
 
 d = defaultdict(list)
@@ -30,28 +34,33 @@ scope = ['https://spreadsheets.google.com/feeds',
 class Erg(Widget):
     connected = BooleanProperty(False)
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.speedhist = []
+        self.splithist = []
+        self.ratehist = []
+        self.disthist = []
+        self.start_time = time.time()
+
     def change_text(self, _text):
+        curtime = time.time()
 
         if 'Dist' in _text:
-            self.disthist.append(int(_text[_text.find('Distance: ')+len('Distance: '):]))
-            self.ldist.text = str(self.disthist[-1]) + ' m'
+            self.disthist.append((curtime-self.start_time, int(_text[_text.find('Distance: ')+len('Distance: '):])))
+            self.ldist.text = str(self.disthist[-1][1]) + ' m'
         else:
-            self.speedhist.append(int(_text[_text.find('Speed: ')+len('Speed: '):_text.find(' Split:')]))
-            self.lspeed.text = str(self.speedhist[-1]) +' m/s'
+            self.speedhist.append((curtime-self.start_time, int(_text[_text.find('Speed: ')+len('Speed: '):_text.find(' Split:')])))
+            self.lspeed.text = str(self.speedhist[-1][1]) +' m/s'
 
-            self.ratehist.append(int(_text[_text.find('Rate: ')+len('Rate: '):]))
-            self.lrate.text = str(self.ratehist[-1]) +' str/min'
+            self.ratehist.append((curtime-self.start_time,int(_text[_text.find('Rate: ')+len('Rate: '):])))
+            self.lrate.text = str(self.ratehist[-1][1]) +' str/min'
 
-            self.splithist.append(_text[_text.find('Speed: ')+len('Speed: '):_text.find(' Split:')])
-            self.lsplit.text = self.splithist[-1]
-        print(self.speedhist)
+            self.splithist.append((curtime-self.start_time,_text[_text.find('Speed: ')+len('Speed: '):_text.find(' Split:')]))
+            self.lsplit.text = self.splithist[-1][1]
 
     def update_status(self, _connected):
         if _connected:
-            self.speedhist = []
-            self.splithist = []
-            self.ratehist = []
-            self.disthist = []
+
             self.change_text('Speed: 0 Split: 0:00 Stroke Rate: 0')
             self.connected = True
             self.limg.source  = 'images/erg_online.png'
@@ -71,12 +80,54 @@ class WorkoutScores(Screen):
 class Settings(Screen):
     pass
 
+class ErgGraph(Widget):
+    pass
+
+class GraphScreen(Screen):
+    erg1 = ObjectProperty(None)
+    erg2 = ObjectProperty(None)
+    erg3 = ObjectProperty(None)
+    erg4 = ObjectProperty(None)
+    erg5 = ObjectProperty(None)
+    erg6 = ObjectProperty(None)
+    erg7 = ObjectProperty(None)
+    erg8 = ObjectProperty(None)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.erg1.ergNum.text = 'Erg 1'
+        self.erg2.ergNum.text = 'Erg 2'
+        self.erg3.ergNum.text = 'Erg 3'
+        self.erg4.ergNum.text = 'Erg 4'
+        self.erg5.ergNum.text = 'Erg 5'
+        self.erg6.ergNum.text = 'Erg 6'
+        self.erg7.ergNum.text = 'Erg 7'
+        self.erg8.ergNum.text = 'Erg 8'
+        self.rateplots = []
+        self.splitplots = []
+        self.starttime = time.time()
+
+        for i in range(8):
+            rate = MeshLinePlot(color=[0, 1, 0, 1])
+            split = MeshLinePlot(color=[0, 1, 0, 1])
+            self.rateplots.append(rate)
+            self.splitplots.append(split)
+            getattr(self, 'erg'+str(i+1)).graph.add_plot(self.rateplots[i])
+            getattr(self, 'erg' + str(i + 1)).graph.add_plot(self.splitplots[i])
+
+
+    def update_graphs(self, *args):
+        for i in range(8):
+            self.rateplots[i].points = [(x,int(y)) for x,y in getattr(app.monitor, 'erg'+str(i+1)).ratehist]
+            self.splitplots[i].points = [(x,int(y)) for x,y in getattr(app.monitor, 'erg' + str(i + 1)).splithist]
+
+
 class ErgMonitorApp(App):
 
 
     with open('settings.json') as f:
         savedict = json.load(f)
-    PMDict = {v: k for k, v in savedict.items()}
+    PMdict = {v: k for k, v in savedict.items()}
 
     stop = threading.Event()
     q = KivyQueue(notify_func=None)
@@ -116,14 +167,14 @@ class ErgMonitorApp(App):
                              stdout=subprocess.PIPE,
                              stderr=subprocess.STDOUT)
 
-        for line in iter(p.stdout.readline, b''):
+        UDP_IP = "127.0.0.1"
+        UDP_PORT = 6900
+        sock = socket.socket(socket.AF_INET,  socket.SOCK_DGRAM)
+        sock.bind((UDP_IP, UDP_PORT))
 
-            if self.stop.is_set():
-                # Stop running this thread so the main Python process can exit.
-                return
-
-            print(line.rstrip().decode("utf-8"))
-            s = line.rstrip().decode("utf-8")
+        while True:
+            data, addr = sock.recvfrom(1024)  # buffer size is 1024 bytes
+            s = data.decode()
             self.q.put(s[:13], s[13:])
 
     def on_stop(self):
@@ -174,10 +225,17 @@ class ErgMonitorApp(App):
         Window.minimum_width = 800
         #Window.borderless = 1
         sm = ScreenManager(transition=NoTransition())
+        self.graph = GraphScreen(name='graph')
         self.settings = Settings(name='settings')
         self.monitor = ErgMonitorBase(name='monitor')
         self.scores = WorkoutScores(name='scores')
+        #self.graph.update_graphs()
+        Clock.schedule_interval(self.graph.update_graphs, 1 / 60.)
+
+
         self.start_update_thread()
+
+        sm.add_widget(self.graph)
         sm.add_widget(self.monitor)
         sm.add_widget(self.scores)
         sm.add_widget(self.settings)
@@ -186,4 +244,5 @@ class ErgMonitorApp(App):
 
 
 if __name__ == '__main__':
-    ErgMonitorApp().run()
+    app = ErgMonitorApp()
+    app.run()

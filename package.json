@@ -1,0 +1,22 @@
+{
+  "name": "erg_noble",
+  "version": "1.0.0",
+  "description": "Program that monitors up to 8 ergs.",
+  "main": "erg_noble.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CaptainSkyVenom/ErgMonitor.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/CaptainSkyVenom/ErgMonitor/issues"
+  },
+  "homepage": "https://github.com/CaptainSkyVenom/ErgMonitor#readme",
+  "dependencies": {
+    "noble": "^1.9.1"
+  }
+}
