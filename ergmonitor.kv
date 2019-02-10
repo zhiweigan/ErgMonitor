@@ -166,7 +166,7 @@
 
     Button:
         size_hint: None, None
-        pos_hint: {'x': 0.8, 'y': 0.2}
+        pos_hint: {'x': 0.8, 'y': 0.1}
         size: 300,100
         font_name: 'fonts/OpenSans-Light'
         text: 'Save Graph Data'
@@ -373,6 +373,14 @@
         font_name: 'fonts/OpenSans-Light'
         text: 'Save Settings'
         on_release: app.save()
+
+    Button:
+        size_hint: None, None
+        pos_hint: {'x': 0.1, 'y': 0.1}
+        size: 370,100
+        font_name: 'fonts/OpenSans-Light'
+        text: 'Remove Login Credentials\n (Restart Required)'
+        on_release: app.relogin()
 
 
 <WorkoutScores>:

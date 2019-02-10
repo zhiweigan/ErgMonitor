@@ -10,3 +10,5 @@ build/ergmonitor/
 dist/ergmonitor\.app/Contents/
 
 dist/
+
+*.csv

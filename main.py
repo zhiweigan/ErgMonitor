@@ -10,7 +10,8 @@ from KivyQueueClass import KivyQueue
 from math import sin, cos
 import threading
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
+import datetime
+#from oauth2client.service_account import ServiceAccountCredentials
 from collections import defaultdict
 from kivy.core.window import Window
 Window.clearcolor = (1, 1, 1, 1)
@@ -22,14 +23,24 @@ from kivy.garden.graph import Graph, MeshLinePlot
 import socket
 from kivy.utils import get_color_from_hex as rgb
 import numpy as np
+from pydrive.auth import GoogleAuth
+from pydrive.drive import GoogleDrive
+import webbrowser
 
 
-d = defaultdict(list)
+scores = defaultdict(list)
 
-
-scope = ['https://spreadsheets.google.com/feeds',
-         'https://www.googleapis.com/auth/drive']
-
+gauth = GoogleAuth()
+gauth.LoadCredentialsFile("credentials.json")
+if gauth.credentials is None:
+    gauth.LocalWebserverAuth()
+elif gauth.access_token_expired:
+    # Refresh them if expired
+    gauth.Refresh()
+else:
+    gauth.Authorize()
+gauth.SaveCredentialsFile("credentials.json")
+drive = GoogleDrive(gauth)
 
 
 class Erg(Widget):
@@ -148,7 +159,7 @@ class ErgMonitorApp(App):
             time = pmdata[pmdata.find('Time: ')+len('Time: '):pmdata.find(' Distance')]
             distance = pmdata[pmdata.find('Distance: ')+len('Distance: '):pmdata.find(' Avg')]
             avg_split = pmdata[pmdata.find('Avg Split: ')+len('Avg Split: '):]
-            d[self.PMdict[pmid][-1]].append((time, distance, avg_split))
+            scores[self.PMdict[pmid][-1]].append((time, distance, avg_split))
             self.scores.tableList.data.insert(1,{'erg': self.PMdict[pmid][-1], 'time': str(time), 'dist': str(distance), 'avg_split': str(avg_split)})
         try:
             if 'CON' in pmdata:
@@ -205,28 +216,48 @@ class ErgMonitorApp(App):
             json.dump(self.savedict, outfile)
 
     def upload(self):
-        # try:
-        creds = ServiceAccountCredentials.from_json_keyfile_name('client_secret.json', scope)
-        client = gspread.authorize(creds)
-        sheet = client.open("Erg Scores Test").sheet1
-        for k,v in d.items():
-            row = ['Erg ID']
-            row += ['Time', 'Distance', 'Avg Split']*len(v)
-            sheet.delete_row(1)
-            sheet.insert_row(row, 1)
-            break
+        try:
+            csv_arr = []
+            for k,v in scores.items():
+                row = ['Erg ID']
+                row += ['Time', 'Distance', 'Avg Split']*len(v)
+                csv_arr.append(row)
 
-        counter = 1
-        for k,v in d.items():
-            counter += 1
-            row = [k]
-            for a,b,c in v:
-                row += [a,b,c]
-            sheet.delete_row(counter)
-            sheet.insert_row(row, counter)
+            counter = 1
+            for k,v in scores.items():
+                counter += 1
+                name = getattr(self.monitor, 'erg'+str(k)).lname.text
+                if name != '':
+                    row = [name]
+                else:
+                    row = [k]
+                for a,b,c in v:
+                    row += [a,b,c]
+                csv_arr.append(row)
+
+            print(scores.items())
+
+            filename = str(datetime.datetime.now())+' erg_data.csv'
+            np.savetxt(filename, csv_arr, delimiter=',', fmt='%s')
+
+            file1 = drive.CreateFile()
+            file1.SetContentFile(filename)
+            # {'convert': True} triggers conversion to a Google Drive document.
+            file1.Upload({'convert': True})
+            permission = file1.InsertPermission({
+                'type': 'anyone',
+                'value': 'anyone',
+                'role': 'reader'})
+
+            print(file1['alternateLink'])
+            webbrowser.open(file1['alternateLink'])
+
             print('Uploaded')
+        except:
+            print('Error During Upload')
 
-
+    def relogin(self):
+        os.remove('credentials.json')
 
     def build(self):
         Window.minimum_height = 600
@@ -243,14 +274,17 @@ class ErgMonitorApp(App):
 
         self.start_update_thread()
 
-        sm.add_widget(self.graph)
+
         sm.add_widget(self.monitor)
         sm.add_widget(self.scores)
         sm.add_widget(self.settings)
+        sm.add_widget(self.graph)
 
         return sm
 
 
 if __name__ == '__main__':
+
+
     app = ErgMonitorApp()
     app.run()
