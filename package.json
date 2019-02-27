@@ -17,6 +17,6 @@
   },
   "homepage": "https://github.com/CaptainSkyVenom/ErgMonitor#readme",
   "dependencies": {
-    "noble": "^1.9.1"
+    "noble-mac": "git+https://github.com/Timeular/noble-mac.git"
   }
 }

@@ -57,18 +57,15 @@
         plot: MeshLinePlot
         xlabel:'Time'
         ylabel:'Rate/Split'
-        x_ticks_minor:5
-        x_tics_major:25
-        y_ticks_major:1
         y_grid_label:True
         x_grid_label:True
         padding:5
-        x_grid:True
-        y_grid:True
-        xmin:-0
+        x_grid:False
+        y_grid:False
+        xmin:0
         xmax:100
-        ymin:-1
-        ymax:1
+        ymin:0
+        ymax:100
         size_hint: None, None
         size: 325, 325
         x: self.parent.x
@@ -296,7 +293,7 @@
     Label:
         color: 0,0,0,1
         font_size: 40
-        pos_hint: {'x': -0.27, 'y': 0.445}
+        pos_hint: {'x': -0.35, 'y': 0.445}
         font_name: 'fonts/OpenSans-Regular'
         text: 'Settings'
 
@@ -373,6 +370,15 @@
         font_name: 'fonts/OpenSans-Light'
         text: 'Save Settings'
         on_release: app.save()
+
+    Button:
+        size_hint: None, None
+        pos_hint: {'x': 0.8, 'y': 0.2}
+        size: 300,100
+        font_name: 'fonts/OpenSans-Light'
+        text: 'Restart Backend'
+        on_release: app.restart_backend()
+
 
     Button:
         size_hint: None, None

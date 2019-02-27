@@ -1,32 +1,23 @@
 import subprocess, time, os, sys
 from kivy.app import App
 from kivy.uix.widget import Widget
-from kivy.properties import NumericProperty, ReferenceListProperty,\
-    ObjectProperty, BooleanProperty, StringProperty
-from kivy.vector import Vector
+from kivy.properties import ObjectProperty, BooleanProperty
 from kivy.clock import Clock
-from kivy.uix.image import Image
 from KivyQueueClass import KivyQueue
-from math import sin, cos
 import threading
-import gspread
+import atexit
 import datetime
-#from oauth2client.service_account import ServiceAccountCredentials
 from collections import defaultdict
 from kivy.core.window import Window
 Window.clearcolor = (1, 1, 1, 1)
 from kivy.uix.screenmanager import ScreenManager, Screen, NoTransition
-from kivy.loader import Loader
-from kivy.uix.textinput import TextInput
 import json
 from kivy.garden.graph import Graph, MeshLinePlot
 import socket
-from kivy.utils import get_color_from_hex as rgb
 import numpy as np
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 import webbrowser
-
 
 scores = defaultdict(list)
 
@@ -61,13 +52,13 @@ class Erg(Widget):
             self.disthist.append((curtime-self.start_time, int(_text[_text.find('Distance: ')+len('Distance: '):])))
             self.ldist.text = str(self.disthist[-1][1]) + ' m'
         else:
-            self.speedhist.append((curtime-self.start_time, int(_text[_text.find('Speed: ')+len('Speed: '):_text.find(' Split:')])))
+            self.speedhist.append((curtime-self.start_time, float(_text[_text.find('Speed: ')+len('Speed: '):_text.find(' Split:')-3])))
             self.lspeed.text = str(self.speedhist[-1][1]) +' m/s'
 
             self.ratehist.append((curtime-self.start_time,int(_text[_text.find('Rate: ')+len('Rate: '):])))
             self.lrate.text = str(self.ratehist[-1][1]) +' str/min'
 
-            self.splithist.append((curtime-self.start_time,_text[_text.find('Speed: ')+len('Speed: '):_text.find(' Split:')]))
+            self.splithist.append((curtime-self.start_time,_text[_text.find('Split: ')+len('Split: '):_text.find(' Stroke')]))
             self.lsplit.text = self.splithist[-1][1]
 
     def update_status(self, _connected):
@@ -118,26 +109,31 @@ class GraphScreen(Screen):
         self.erg7.ergNum.text = 'Erg 7'
         self.erg8.ergNum.text = 'Erg 8'
         self.rateplots = []
-        self.splitplots = []
+        self.speedplots = []
         self.starttime = time.time()
 
         for i in range(8):
             rate = MeshLinePlot(color=[0, 1, 0, 1])
-            split = MeshLinePlot(color=[0, 1, 0, 1])
+            speed = MeshLinePlot(color=[1, 0, 0, 1])
             self.rateplots.append(rate)
-            self.splitplots.append(split)
+            self.speedplots.append(speed)
             getattr(self, 'erg'+str(i+1)).graph.add_plot(self.rateplots[i])
-            getattr(self, 'erg' + str(i + 1)).graph.add_plot(self.splitplots[i])
+            getattr(self, 'erg' + str(i + 1)).graph.add_plot(self.speedplots[i])
 
 
     def update_graphs(self, *args):
         for i in range(8):
-            self.rateplots[i].points = [(x,int(y)) for x,y in getattr(app.monitor, 'erg'+str(i+1)).ratehist]
-            self.splitplots[i].points = [(x,int(y)) for x,y in getattr(app.monitor, 'erg' + str(i + 1)).splithist]
+            self.rateplots[i].points = [(j,int(x[1])) for j,x in enumerate(getattr(app.monitor, 'erg'+str(i+1)).ratehist[1:])]
+            self.speedplots[i].points = [(j,int(x[1])) for j,x in enumerate(getattr(app.monitor, 'erg' + str(i + 1)).speedhist[1:])]
+            if len(self.rateplots[i].points) > 0 and self.rateplots[i].points[-1][0] > 100: # TEST
+                getattr(self, 'erg' + str(i + 1)).graph.xmin = self.rateplots[i][-1][0]-100
+                getattr(self, 'erg' + str(i + 1)).graph.xmax = self.rateplots[i][-1][0]
+
 
     def save_graph(self):
         for i in range(8):
-            np.savetxt('erg'+str(i+1)+'.csv', getattr(app.monitor, 'erg'+str(i+1)).ratehist, delimiter=',', fmt='%s')
+            np.savetxt('./stroke_data/erg'+str(i+1)+'_rate.csv', getattr(app.monitor, 'erg'+str(i+1)).ratehist, delimiter=',', fmt='%s')
+            np.savetxt('./stroke_data/erg' + str(i + 1) + '_speed.csv', getattr(app.monitor, 'erg' + str(i + 1)).speedhist, delimiter=',', fmt='%s')
 
 
 class ErgMonitorApp(App):
@@ -154,7 +150,6 @@ class ErgMonitorApp(App):
         data = self.q.get()
         pmid = data[0]
         pmdata = data[1]
-        curerg = None
         if 'FIN' in pmdata:
             time = pmdata[pmdata.find('Time: ')+len('Time: '):pmdata.find(' Distance')]
             distance = pmdata[pmdata.find('Distance: ')+len('Distance: '):pmdata.find(' Avg')]
@@ -170,6 +165,7 @@ class ErgMonitorApp(App):
                 getattr(self.monitor, self.PMdict[pmid]).change_text(pmdata[4:])
         except:
             pass
+            #traceback.print_exc()
 
     def start_update_thread(self):
         self.scores.tableList.data.insert(0,{'erg': 'Erg', 'time': 'Time', 'dist': 'Dist', 'avg_split': 'Avg Splt'})
@@ -178,10 +174,19 @@ class ErgMonitorApp(App):
         t.daemon = True
         t.start()
 
+    def restart_backend(self):
+        self.p.kill()
+
+        cmd = ["node", "erg_noble.js"]
+
+        self.p = subprocess.Popen(cmd,
+                                  stdout=subprocess.PIPE,
+                                  stderr=subprocess.STDOUT)
+
     def update_thread(self):
         cmd = ["node", "erg_noble.js"]
 
-        p = subprocess.Popen(cmd,
+        self.p = subprocess.Popen(cmd,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.STDOUT)
 
@@ -235,9 +240,11 @@ class ErgMonitorApp(App):
                     row += [a,b,c]
                 csv_arr.append(row)
 
-            print(scores.items())
+            if len(scores.items()) == 0:
+                print('No scores to upload')
+                return
 
-            filename = str(datetime.datetime.now())+' erg_data.csv'
+            filename = './workout_data/'+str(datetime.datetime.now())+' erg_data.csv'
             np.savetxt(filename, csv_arr, delimiter=',', fmt='%s')
 
             file1 = drive.CreateFile()
@@ -282,9 +289,14 @@ class ErgMonitorApp(App):
 
         return sm
 
+    def cleanup(self):
+        self.p.kill()
+
+
+
 
 if __name__ == '__main__':
 
-
     app = ErgMonitorApp()
+    atexit.register(app.cleanup)
     app.run()

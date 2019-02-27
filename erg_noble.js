@@ -1,4 +1,4 @@
-var noble = require('noble');
+var noble = require('noble-mac');
 const readline = require('readline');
 
 function bytesToNumber(bytes) {
@@ -39,13 +39,14 @@ async function demo() {
   console.log('Taking a break...');
   await sleep(2000);
 
-  var messages = ['PM5 430500339 CON', 'PM5 430500339 MON Speed: 20 Split: 2:12 Stroke Rate: 32', 'PM5 430500339 MON Distance: 100', 'PM5 430504875 CON', 'PM5 430500339 FIN Time: 6:15 Distance: 2000 Avg Split: 1:30.9']
+  var messages = ['PM5 430500339 CON', 'PM5 430500339 MON Speed: 20 Split: 2:12 Stroke Rate: 32','PM5 430500339 MON Speed: 25 Split: 2:12 Stroke Rate: 37', 'PM5 430500339 MON Distance: 100', 'PM5 430504875 CON', 'PM5 430500339 FIN Time: 6:15 Distance: 2000 Avg Split: 1:30.9']
   for(var i = 0; i < 10; i++){
     var message = messages[i]
     client.send(message, 0, message.length, PORT, HOST, function(err, bytes) {
                   if (err) throw err;
                   console.log('UDP message sent to ' + HOST +':'+ PORT)
   });
+
   }
   // console.log('Two seconds later');
   // console.log('PM5 430500339 CON')
@@ -78,17 +79,18 @@ const client = dgram.createSocket('udp4');
 var HOST = '127.0.0.1';
 var PORT = 6900;
 
-
 var totalergs = 8
 var count = 0
 var workoutfinishedcount = 0
 noble.on('discover', function(peripheral) {
-    //console.log('Found device with local name: ' + peripheral.advertisement.localName);
-    //console.log('advertising the following service uuid\'s: ' + peripheral.advertisement.serviceUuids);
-    //console.log();
     if(peripheral.advertisement.localName != undefined && peripheral.advertisement.localName.startsWith("PM5")){
       peripheral.connect(function(error) {
+          var message = peripheral.advertisement.localName + ' CON'
         console.log(peripheral.advertisement.localName + ' CON');
+        client.send(message, 0, message.length, PORT, HOST, function(err, bytes) {
+                  if (err) throw err;
+                  console.log(message + 'to' + HOST +':'+ PORT);
+                });
         count += 1
         if(count >= totalergs){
           console.log('Stopped Scanning')
@@ -99,7 +101,7 @@ noble.on('discover', function(peripheral) {
               var message = peripheral.advertisement.localName +' DIS'
               client.send(message, 0, message.length, PORT, HOST, function(err, bytes) {
                   if (err) throw err;
-                  console.log('UDP message sent to ' + HOST +':'+ PORT);
+                  console.log(message + 'to' + HOST +':'+ PORT);
                 });
               console.log(data)
               count -= 1;
@@ -126,7 +128,7 @@ noble.on('discover', function(peripheral) {
                 var message = peripheral.advertisement.localName + ' FIN Time: ' + time + ' Distance: ' + distance + ' Avg Split: ' + avgsplit
                 client.send(message, 0, message.length, PORT, HOST, function(err, bytes) {
                   if (err) throw err;
-                  console.log('UDP message sent to ' + HOST +':'+ PORT);
+                  console.log(message + 'to '+ HOST +':'+ PORT);
                 });
               }
 
@@ -140,7 +142,7 @@ noble.on('discover', function(peripheral) {
               var message = peripheral.advertisement.localName + ' MON Speed: ' + curr_speed + 'm/s Split: ' + curr_split + ' Stroke Rate: ' + curr_rate
               client.send(message, 0, message.length, PORT, HOST, function(err, bytes) {
                   if (err) throw err;
-                  console.log('UDP message sent to ' + HOST +':'+ PORT);
+                  console.log(message + 'to' + HOST +':'+ PORT);
               });
             });
 
@@ -152,7 +154,7 @@ noble.on('discover', function(peripheral) {
               var message = peripheral.advertisement.localName + ' MON Distance: ' + curr_distance
               client.send(message, 0, message.length, PORT, HOST, function(err, bytes) {
                   if (err) throw err;
-                  console.log('UDP message sent to ' + HOST +':'+ PORT);
+                  console.log(message + 'to' + HOST +':'+ PORT);
               });
             });
 
@@ -164,7 +166,7 @@ noble.on('discover', function(peripheral) {
               var message = peripheral.advertisement.localName + ' FIN Time: ' + time + ' Distance: ' + distance + ' Avg Split: ' + 'N/A'
               client.send(message, 0, message.length, PORT, HOST, function(err, bytes) {
                   if (err) throw err;
-                  console.log('UDP message sent to ' + HOST +':'+ PORT);
+                  console.log(message + 'to' + HOST +':'+ PORT);
               });
             });
 
