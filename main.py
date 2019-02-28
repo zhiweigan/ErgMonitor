@@ -68,8 +68,10 @@ class Erg(Widget):
             self.connected = True
             self.limg.source  = 'images/erg_online.png'
         else:
-            self.change_text('')
-            self.connected = False
+            self.ldist.text = ''
+            self.lspeed.text = ''
+            self.lrate.text = ''
+            self.lsplit.text = ''
             self.limg.source  = 'images/erg_offline.png'
 
 
@@ -125,9 +127,9 @@ class GraphScreen(Screen):
         for i in range(8):
             self.rateplots[i].points = [(j,int(x[1])) for j,x in enumerate(getattr(app.monitor, 'erg'+str(i+1)).ratehist[1:])]
             self.speedplots[i].points = [(j,int(x[1])) for j,x in enumerate(getattr(app.monitor, 'erg' + str(i + 1)).speedhist[1:])]
-            if len(self.rateplots[i].points) > 0 and self.rateplots[i].points[-1][0] > 100: # TEST
-                getattr(self, 'erg' + str(i + 1)).graph.xmin = self.rateplots[i][-1][0]-100
-                getattr(self, 'erg' + str(i + 1)).graph.xmax = self.rateplots[i][-1][0]
+            # if len(self.rateplots[i].points) > 0 and self.rateplots[i].points[-1][0] > 100: # TEST
+            #     getattr(self, 'erg' + str(i + 1)).graph.xmin = self.rateplots[i][-1][0]-100
+            #     getattr(self, 'erg' + str(i + 1)).graph.xmax = self.rateplots[i][-1][0]
 
 
     def save_graph(self):
