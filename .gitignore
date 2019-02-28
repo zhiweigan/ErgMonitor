@@ -12,3 +12,5 @@ dist/ergmonitor\.app/Contents/
 dist/
 
 *.csv
+
+credentials\.json
